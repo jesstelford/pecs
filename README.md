@@ -176,3 +176,18 @@ Any Systems which previously matched this entity will no longer operate on it.
 Useful for delaying actions until the next turn of the update loop.
 Particularly when the action would modify a list that's currently being iterated
 on such as removing an item due to collision, or spawning new items.
+
+## PECS Lite
+
+`pecs.lua` includes a Filter & Query system to support _Systems_. While
+_Systems_ are a very powerful feature of PECS, it comes at a cost of both tokens
+and CPU cycles.
+
+`pecs-lite.lua` is a version of PECS without support for _Systems_. _Components_
+and _Entities_ continue to function identically, but you will have to write your
+own functions for executing game logic over a sub-set of _Entities_.
+
+**Token Counts**:
+
+- `pecs.lua`: 576
+- `pecs-lite.lua`: 245

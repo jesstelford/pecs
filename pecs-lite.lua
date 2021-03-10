@@ -6,7 +6,7 @@
 -- possible.
 -- Use this if you want to save tokens, or are not using the System or Query
 -- aspects of PECS
-createECSWorld = (function()
+local createECSWorld do
   local _highestId = 0
 
   function cuid()
@@ -23,9 +23,9 @@ createECSWorld = (function()
       end
     end
     return result
-  end,
+  end
 
-  return function()
+  createECSWorld = function()
     local entities = {}
     local onNextUpdateStack = {}
 
@@ -61,7 +61,6 @@ createECSWorld = (function()
       end
 
       entities[entity._id] = entity
-
       return entity
     end
 
@@ -102,4 +101,4 @@ createECSWorld = (function()
       update=update,
     }
   end
-end)()
+end
