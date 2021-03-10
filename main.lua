@@ -1,3 +1,78 @@
+-- Derived from https://github.com/ericelliott/cuid
+cuid = (function()
+  function intToBase16(num)
+    return sub(tostr(num, true), 3, 6)
+  end
+
+  local counter, maxInt, defaultFingerprint = 0, 32767, intToBase16(stat(5))
+
+  function randomBlock()
+    return intToBase16(rnd(maxInt + 1))
+  end
+
+  function safeCounter()
+    if (counter >= maxInt) counter = 0
+    counter += 1 -- this is not subliminal
+    return counter - 1
+  end
+
+  return function (fingerprint)
+    fingerprint = fingerprint or defaultFingerprint
+    return "c" .. intToBase16(time() * 1000) .. intToBase16(safeCounter()) .. fingerprint .. randomBlock() .. randomBlock()
+  end
+end)()
+
+util = {
+  -- O(n) comparison of values in a table
+  arraySame = function(a, b)
+    if (#a != #b) then return false end
+    valueHash = {}
+
+    for _, value in pairs(a) do
+      valueHash[value] = (valueHash[value] or 0) + 1
+    end
+
+    for _, value in pairs(b) do
+      valueHash[value] = (valueHash[value] or 0) - 1
+    end
+
+    for _, value in pairs(valueHash) do
+      if (value != 0) then return false end
+    end
+
+    return true
+  end,
+
+  find = function(collection, item, compareFunc)
+    for key, value in pairs(collection) do
+      if (compareFunc(key, value, item)) then
+        return value
+      end
+    end
+    return nil
+  end,
+
+  every = function(collection, checkFunc)
+    for key, value in pairs(collection) do
+      if (not checkFunc(value, key, collection)) then
+        return false
+      end
+    end
+    return true
+  end,
+
+  assign = function(...)
+    local result = {}
+    local args = { n = select("#", ...), ... }
+    for i = 1, args.n do
+      if (type(args[i]) == "table") then
+        for key, value in pairs(args[i]) do result[key] = value end
+      end
+    end
+    return result
+  end,
+}
+
 function createECSWorld()
   local entities = {}
   local queries = {}
