@@ -1,3 +1,6 @@
+-- A PICO-8 Entity Component System (ECS) library
+-- License: MIT Copyright (c) 2021 Jess Telford
+-- From: https://github.com/jesstelford/pico-8-pecs
 createECSWorld = (function()
   -- Derived from https://github.com/ericelliott/cuid
   local cuid = (function()
