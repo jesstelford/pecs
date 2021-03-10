@@ -1,17 +1,13 @@
 <div align="center">
   <br>
-  <br>
   <h1>PECS</h1>
   <p>
-    <b>A <a href="https://www.lexaloffle.com/pico-8.php">PICO-8</a> <a href="https://en.wikipedia.org/wiki/Entity_component_system">ECS</a> library.</b><br />
+    <b>A <a href="https://www.lexaloffle.com/pico-8.php">PICO-8</a> <a href="https://en.wikipedia.org/wiki/Entity_component_system">Entity Component System (ECS)</a> library.</b><br />
   <sup>(Based on <a href="https://www.lexaloffle.com/bbs/?uid=45947">KatrinaKitten</a>'s excellent <a href="https://www.lexaloffle.com/bbs/?tid=39021">Tiny ECS Framework v1.1</a>)</sup>
   </p>
   <br>
   <br>
-  <br>
 </div>
-
----
 
 ## Usage
 
@@ -28,15 +24,10 @@ local Position = world.createComponent()
 local Velocity = world.createComponent()
 ```
 
-An _Entity_ is a collection of _Components_:
+An _Entity_ is a collection of instantiated _Components_.
 
 ```lua
-local player = world.createEntity({ name="Jess" })
-```
-
-_Components_ are added to _Entities_ along with initial data:
-
-```lua
+local player = world.createEntity()
 player += Position({ x=10, y=0 })
 player += Velocity({ x=0, y=1 })
 ```
@@ -45,13 +36,10 @@ All data within an _Entity_ can be accessed as long as you know the _Component_
 it belongs to:
 
 ```lua
--- Direct access to component data
-if player[Position] then
-  print(player[Position].y)
-end
+print(player[Position].x, 10, 10, 7)
 ```
 
-_Systems_ allow specifying game logic (as a function) which should apply to
+_Systems_ allow specifying game logic (as a function) which applies to
 _Entities_ that have a certain set of _Components_ (ie; a _filter_).
 
 The game logic function of a _System_ is executed once per matched _Entity_,
@@ -103,10 +91,9 @@ end
 
 ## API
 
-### `createECSWorld()`
+### `createECSWorld() => World`
 
-Everything in PECS happens within a world. This must be called once per world
-you wish to setup.
+Everything in PECS happens within a world.
 
 Can be called multiple times to create multiple worlds:
 
@@ -117,38 +104,75 @@ local world2 = createECSWorld()
 
 Each world has its own _Components_ and _Entities_.
 
-### `.createEntity()`
+#### `World#update()`
 
-### `.createComponent()`
+Must be called at the start of each `_update()` before anything else.
 
-### `.createSystem()`
-
-### `.removeEntity()`
-
-### `.queue()`
-
-Useful for delaying actions until the next turn of the update loop.
-Particularly when the action would modify a list that's currently being iterated
-on such as removing an item due to collision, or spawning new items.
-
-### `.update()`
-
-Must be called at the start of each update() before anything else.
-
-### Adding a Component to an Entity
+#### `World#createEntity([attr[, Component, ...]]) => Entity`
 
 ```lua
-player += Position
+local player = world.createEntity()
+
+local trap = world.createEntity({ type="spikes" })
+
+local enemy = world.createEntity({}, Position({ x=10, y=10 }), Rotation({ angle=45 })
 ```
 
-### Removing a Component from an Entity
+##### Adding a Component to an Entity
+
+```lua
+player += Position({ x=100, y=20 })
+```
+
+##### Removing a Component from an Entity
 
 ```lua
 player -= Position
 ```
 
-### Removing an Entity from the world
+#### `World#createComponent([defaults]) => Component`
 
 ```lua
-world.removeEntity(player)
+local Position = world.createComponent()
+
+local Drawable = world.createComponent({ color: 8 })
 ```
+
+#### `World#createSystem(filter, callback) => Function`
+
+Where `filter` is a table of Components, and `callback` is a function that's
+passed the entity to operate on.
+
+Returns a function that when called will execute the `callback` once per Entity
+that contains all the specified Components.
+
+When executing the function, any parameters are passed through to the
+`callback`.
+
+```lua
+local move = world.createSystem({ Position, Velocity }, function(entity, ticks)
+  entity[Position].x += entity[Velocity].x * ticks
+  entity[Position].y += entity[Velocity].y * ticks
+end)
+
+-- Run the system method against all matched entities
+-- Any args passed will be available in the system callback function
+local ticks = 1
+move(ticks)
+```
+
+Systems efficiently maintain a list of filtered entities that is only updated
+when needed. It is safe to create many systems that operate over large lists of
+Entities (within PICO-8's limits).
+
+#### `World#removeEntity(Entity)`
+
+Remove the given entity from the world.
+
+Any Systems which previously matched this entity will no longer operate on it.
+
+#### `World#queue(Function)`
+
+Useful for delaying actions until the next turn of the update loop.
+Particularly when the action would modify a list that's currently being iterated
+on such as removing an item due to collision, or spawning new items.
