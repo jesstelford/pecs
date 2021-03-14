@@ -89,6 +89,8 @@ function _draw()
 end
 ```
 
+For a more complete example, see [`example/particles.p8`](./example/particles.p8).
+
 ## API
 
 ### `createECSWorld() => World`
