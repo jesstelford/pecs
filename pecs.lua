@@ -1,6 +1,6 @@
 -- pecs ENTITY COMPONENT SYSTEM
 -- github.com/jesstelford/pecs
--- v1.1.0
+-- v1.1.1
 -- License: MIT Copyright (c) 2021 Jess Telford
 local createECSWorld do
   local _highestId = 0
