@@ -1,6 +1,7 @@
--- A PICO-8 Entity Component System (ECS) library
+-- pecs ENTITY COMPONENT SYSTEM
+-- github.com/jesstelford/pecs
+-- v1.1.0
 -- License: MIT Copyright (c) 2021 Jess Telford
--- From: https://github.com/jesstelford/pico-8-pecs
 local createECSWorld do
   local _highestId = 0
 
@@ -210,3 +211,4 @@ local createECSWorld do
     }
   end
 end
+-- END pecs P8 ENTITY COMPONENT SYSTEM
