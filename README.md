@@ -89,7 +89,14 @@ function _draw()
 end
 ```
 
-For a more complete example, see [`example/particles.p8`](./example/particles.p8).
+For more complete & practical examples, see the `example/` folder:
+
+- **[`example/particles.p8`](./example/particles.p8)**: A Particle Emitter
+  showing how to spawn entities and adding/removing components (the type of
+  Emitter) on a button press.
+- **[`example/camera-follow.p8`](./example/camera-follow.p8)**: A camera
+  follow/window technique built using Components & Systems. This example has a
+  visual representation of the "camera" to see the effect.
 
 ## API
 
