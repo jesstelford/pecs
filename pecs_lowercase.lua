@@ -254,7 +254,7 @@ local create_world do
       create_ent = create_ent,
       create_comp = create_comp,
       create_sys = create_sys,
-      create_quer = create_quer,
+      create_query = create_query,
       remove_ent = remove_ent,
       queue = queue,
       update = update,
