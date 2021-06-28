@@ -27,7 +27,7 @@ local create_world do
 -- | values in a table
 
     function(a, b)
-      if (#a != #b) then return false end
+      if (#a ~= #b) return false
       value_hash = {}
 
       for _, value in pairs(a) do
@@ -39,7 +39,7 @@ local create_world do
       end
 
       for _, value in pairs(value_hash) do
-        if (value != 0) then return false end
+        if (value ~= 0) return false
       end
 
       return true
@@ -49,9 +49,7 @@ local create_world do
 
     function(collection, item, compare_func)
       for key, value in pairs(collection) do
-        if (compare_func(key, value, item)) then
-          return value
-        end
+        if (compare_func(key, value, item)) return value
       end
       return nil
     end,
@@ -60,9 +58,7 @@ local create_world do
 
     function(collection, check_func)
       for key, value in pairs(collection) do
-        if (not check_func(value, key, collection)) then
-          return false
-        end
+        if (not check_func(value, key, collection)) return false
       end
       return true
     end,
@@ -73,10 +69,8 @@ local create_world do
       local result = {}
       local args = { n = select("#", ...), ... }
       for i = 1, args.n do
-        if (type(args[i]) == "table") then
-          for key, value in pairs(args[i]) do 
-            result[key] = value 
-          end
+        if type(args[i]) == "table" then
+          for key, value in pairs(args[i]) do result[key] = value end
         end
       end
       return result
@@ -103,9 +97,7 @@ local create_world do
         return array_same(a, b)
       end)
 
-      if (query != nil) then
-        return query
-      end
+      if (query ~= nil) return query
 
 -- | Empty to start
 
@@ -115,9 +107,7 @@ local create_world do
 -- | entities to populate the filter
 
       for _, ent in pairs(entities) do
-        if (every(filter, function(comp_factory)
-          return ent[comp_factory]
-        end)) then
+        if every(filter, function(comp_factory) return ent[comp_factory] end) then
           queries[filter][ent._id] = ent
         end
       end
@@ -132,14 +122,14 @@ local create_world do
 
       local comps = {}
       for _, comp in pairs(ent) do
-        if (type(comp) == "table" 
-        and comp._comp_factory != nil) then
+        if type(comp) == "table" 
+        and comp._comp_factory ~= nil then
           add(comps, comp)
         end
       end
 
       function has_comp(comp_factory)
-        return ent[comp_factory] != nil
+        return ent[comp_factory] ~= nil
       end
 
 -- | Check and update each filter
@@ -197,7 +187,7 @@ local create_world do
 
       entities[ent._id] = ent
 
-      if (new_comps > 0) then update_filters(ent) end
+      if (new_comps > 0) update_filters(ent)
       return ent
     end
 
@@ -211,8 +201,8 @@ local create_world do
       return comp_factory
     end
 
-    function create_sys(compfilter, callback)
-      local entities = create_query(compfilter)
+    function create_sys(comp_filter, callback)
+      local entities = create_query(comp_filter)
       return function(...)
         for _, ent in pairs(entities) do
           callback(ent, ...)
