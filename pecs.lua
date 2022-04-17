@@ -1,52 +1,58 @@
 -- pecs ENTITY COMPONENT SYSTEM
--- github.com/jesstelford/pecs
--- v1.1.1
--- License: MIT Copyright (c) 2021 Jess Telford
-local createECSWorld do
-  local _highestId = 0
+-- GITHUB.COM/JESSTELFORD/PECS
+-- V2.0.0
+-- license: mit COPYRIGHT (C)
+-- 2022 jESS tELFORD
+--
+-- Contributors
+-- jesstelford: core maintainer
+-- josiebb: reduce tokens, pico8
+--   editor support
+
+local pecs do
+  local _highest_id = 0
 
   function cuid()
-    _highestId += 1
-    return _highestId
+    _highest_id += 1
+    return _highest_id
   end
 
-  local arraySame, find, every, assign =
-    -- arraySame; O(n) comparison of values in a table
+  local array_same, find, every, assign =
+
+    -- array_same;
+    -- O(n) comparison of values
+    -- in a table
     function(a, b)
-      if (#a != #b) then return false end
-      valueHash = {}
+      if (#a ~= #b) return false
+      value_hash = {}
 
       for _, value in pairs(a) do
-        valueHash[value] = (valueHash[value] or 0) + 1
+        value_hash[value] = (value_hash[value] or 0) + 1
       end
 
       for _, value in pairs(b) do
-        valueHash[value] = (valueHash[value] or 0) - 1
+        value_hash[value] = (value_hash[value] or 0) - 1
       end
 
-      for _, value in pairs(valueHash) do
-        if (value != 0) then return false end
+      for _, value in pairs(value_hash) do
+        if (value ~= 0) return false
       end
 
       return true
     end,
 
     -- find
-    function(collection, item, compareFunc)
+    function(collection, item, compare_func)
       for key, value in pairs(collection) do
-        if (compareFunc(key, value, item)) then
-          return value
-        end
+        if (compare_func(key, value, item)) return value
       end
       return nil
     end,
 
     -- every
-    function(collection, checkFunc)
+    function(collection, check_func)
       for key, value in pairs(collection) do
-        if (not checkFunc(value, key, collection)) then
-          return false
-        end
+        if (not check_func(value, key, collection)) return false
       end
       return true
     end,
@@ -56,159 +62,168 @@ local createECSWorld do
       local result = {}
       local args = { n = select("#", ...), ... }
       for i = 1, args.n do
-        if (type(args[i]) == "table") then
-          for key, value in pairs(args[i]) do result[key] = value end
+        if type(args[i]) == "table" then
+          for key, value in pairs(args[i]) do
+            result[key] = value
+          end
         end
       end
       return result
     end
 
-  createECSWorld = function()
+  pecs = function()
     local entities = {}
     local queries = {}
     local systems = {}
-    local onNextUpdateStack = {}
+    local update_stack = {}
 
-    -- filter is an array of components, eg; { Positionable, Collidable }
-    -- Return a reference to the filtered list of entities (automatically
-    -- updated when new entities match / old entities no longer match)
-    function createQuery(filter)
-      -- This filter already exists
-      local query = find(queries, filter, function(a, _, b)
-        return arraySame(a, b)
+    function query(filter)
+      -- filter already exists
+      local cached = find(queries, filter, function(a, _, b)
+        return array_same(a, b)
       end)
 
-      if (query != nil) then
-        return query
-      end
+      if (cached ~= nil) return cached
 
-      -- Empty to start
+      -- empty to start
       queries[filter] = {}
 
-      -- Then iterate over all known entites to populate the filter
-      for _, entity in pairs(entities) do
-        if (every(filter, function(componentFactory)
-          return entity[componentFactory]
-        end)) then
-          queries[filter][entity._id] = entity
+      -- iterate over all known
+      -- entities to populate
+      -- the filter
+      for _, ent in pairs(entities) do
+        if every(filter, function(comp_factory) return ent[comp_factory] end) then
+          queries[filter][ent._id] = ent
         end
       end
 
       return queries[filter]
     end
 
-    function updateFiltersForEntity(entity)
-      -- Extract out just the components from this entity
-      local components = {}
-      for _, component in pairs(entity) do
-        if (type(component) == "table" and component._componentFactory != nil) then
-          add(components, component)
+    function update_filters(ent)
+
+      -- extract out just this
+      -- entity's components
+      local comps = {}
+      for _, comp in pairs(ent) do
+        if type(comp) == "table" 
+        and comp._comp_factory ~= nil then
+          add(comps, comp)
         end
       end
 
-      function hasComponent(componentFactory)
-        return entity[componentFactory] != nil
+      function has_comp(comp_factory)
+        return ent[comp_factory] ~= nil
       end
 
-      -- Check and update each filter
+      -- check and update each
+      -- filter
       for filter, entities in pairs(queries) do
-        entities[entity._id] = every(filter, hasComponent) and entity or nil
+        entities[ent._id] = every(filter, has_comp) and ent or nil
       end
     end
 
-    function addComponentToEntity(entity, component)
-      -- Only components created by createComponent() can be added
-      assert(component and component._componentFactory)
-      -- And only once
-      assert(not entity[component._componentFactory])
+    function add_comp(ent, comp)
+      -- only ones created by
+      -- .component() can be
+      -- added.
 
-      -- Store the component keyed by its factory
-      entity[component._componentFactory] = component
+      assert(comp and comp._comp_factory)
+
+      -- and only once
+      assert(not ent[comp._comp_factory])
+
+      -- store the comp keyed by
+      -- its factory
+      ent[comp._comp_factory] = comp
     end
 
-    function createEntity(attributes, ...)
-      local entity = assign({}, attributes or {})
+    function entity(attributes, ...)
+      local ent = assign({}, attributes or {})
 
-      entity._id = cuid()
+      ent._id = cuid()
 
-      setmetatable(entity,{
-        __add=function(self, component)
-          addComponentToEntity(self, component)
-          -- This entity's set of components has changed, so we need to update the
-          -- queries
-          updateFiltersForEntity(self)
+      setmetatable(ent,{
+        __add=function(self, comp)
+          add_comp(self, comp)
+
+          -- this ent's set of
+          -- components has
+          -- changed, so we need
+          -- to update queries.
+
+          update_filters(self)
           return self
         end,
 
-        __sub=function(self, componentFactory)
-          self[componentFactory] = nil
-          updateFiltersForEntity(self)
+        __sub=function(self, comp_factory)
+          self[comp_factory] = nil
+          update_filters(self)
           return self
         end
       })
 
-      local newComponents = 0
-      for component in all(pack(...)) do
-        newComponents += 1
-        addComponentToEntity(entity, component)
+      local new_comps = 0
+      for comp in all(pack(...)) do
+        new_comps += 1
+        add_comp(ent, comp)
       end
 
-      entities[entity._id] = entity
+      entities[ent._id] = ent
 
-      if (newComponents > 0) then updateFiltersForEntity(entity) end
-      return entity
+      if (new_comps > 0) update_filters(ent)
+      return ent
     end
 
-    function createComponent(defaults)
-      local function componentFactory(attributes)
-        local component = assign({}, defaults, attributes)
-        component._componentFactory = componentFactory
-        component._id = cuid()
-        return component
+    function component(defaults)
+      local function comp_factory(attributes)
+        local comp = assign({}, defaults, attributes)
+        comp._comp_factory = comp_factory
+        comp._id = cuid()
+        return comp
       end
-      return componentFactory
+      return comp_factory
     end
 
-    function createSystem(componentFilter, callback)
-      local entities = createQuery(componentFilter)
+    function system(comp_filter, callback)
+      local entities = query(comp_filter)
       return function(...)
-        for _, entity in pairs(entities) do
-          callback(entity, ...)
+        for _, ent in pairs(entities) do
+          callback(ent, ...)
         end
       end
     end
 
-    function removeEntity(entity)
-      entities[entity._id] = nil
-      for _, filteredEntities in pairs(queries) do
-        filteredEntities[entity._id] = nil
+    function remove(ent)
+      entities[ent._id] = nil
+      for _, filtered_entities in pairs(queries) do
+        filtered_entities[ent._id] = nil
       end
     end
 
-    -- Useful for delaying actions until the next turn of the update loop.
-    -- Particularly when the action would modify a list that's currently being
-    -- iterated on such as removing an item due to collision, or spawning new items.
     function queue(callback)
-      add(onNextUpdateStack, callback)
+      add(update_stack, callback)
     end
 
-    -- Must be called at the start of each update() before anything else
+    -- must be called at the
+    -- start of each update()
+    -- before anything else
     function update()
-      for callback in all(onNextUpdateStack) do
+      for callback in all(update_stack) do
         callback()
-        del(onNextUpdateStack, callback)
+        del(update_stack, callback)
       end
     end
 
     return {
-      createEntity=createEntity,
-      createComponent=createComponent,
-      createSystem=createSystem,
-      createQuery=createQuery,
-      removeEntity=removeEntity,
-      queue=queue,
-      update=update,
+      entity = entity,
+      component = component,
+      system = system,
+      query = query,
+      remove = remove,
+      queue = queue,
+      update = update,
     }
   end
 end
--- END pecs P8 ENTITY COMPONENT SYSTEM
+-- END pecs ENTITY COMPONENT SYSTEM

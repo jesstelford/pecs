@@ -11,7 +11,7 @@ __lua__
 --[[ ECS SETUP ]]--
 
 -- Setup the world where all Components, Entities, and Systems will live
-local world = createECSWorld()
+local world = pecs()
 
 --[[ END ECS SETUP ]]--
 -----------------------
@@ -25,45 +25,45 @@ local world = createECSWorld()
 
 -- An entity's origin is the top-left corner (ie; -x, -y), relative to the
 -- world's origin
-local Position = world.createComponent({ x = 0, y = 0 })
+local Position = world.component({ x = 0, y = 0 })
 
 -- Make an entity relative to a some other entity
-local RelativePosition = world.createComponent({ x = 0, y = 0, parent = nil })
+local RelativePosition = world.component({ x = 0, y = 0, parent = nil })
 
 -- Give an entity a size (aka; a Bounding Box)
-local Size = world.createComponent({ width = 0, height = 0 })
+local Size = world.component({ width = 0, height = 0 })
 
 -- Special component for the player. This example has only one, but in the
 -- future there may be many, so we use a component for the various data related
 -- to a player.
-local Player = world.createComponent({ moveSpeedX = 60, moveSpeedY = 60 })
+local Player = world.component({ moveSpeedX = 60, moveSpeedY = 60 })
 
 -- Information on how to render an entity
-local Renderable = world.createComponent({ borderColor = 0 })
+local Renderable = world.component({ borderColor = 0 })
 
 -- The boundaries an entity must exist within (inclusive), relative to the world
 -- origin
-local Contained = world.createComponent({ x = 0, y = 0, width = 120, height = 120})
+local Contained = world.component({ x = 0, y = 0, width = 120, height = 120})
 
 -- A follower has an entity it is _following_. The bounaries are relative to the
 -- follower entity's origin. As the following entity moves outside the bounds of
 -- the follower, the follower should move to catch up with the entity it is
 -- following.
-local Follower = world.createComponent({ within = nil, following = nil })
+local Follower = world.component({ within = nil, following = nil })
 
 --[[ END ECS COMPONENTS ]]--
 ----------------------------
 
 function _init()
   -- For debug purposes; Show the "world" box
-  world.createEntity(
+  world.entity(
     {},
     Position({ x = 10, y = 10 }),
     Size({ width = 110, height = 110 }),
     Renderable({ borderColor = 13 })
   )
 
-  local playerEntity = world.createEntity(
+  local playerEntity = world.entity(
     {},
     Player(),
     Position({ x=64, y=64 }),
@@ -72,7 +72,7 @@ function _init()
     Renderable({ borderColor = 8 })
   )
 
-  local cameraEntity = world.createEntity(
+  local cameraEntity = world.entity(
     {},
     Position({ x = 50, y = 50 }),
     Contained({ x=10, y=10, width=110, height=110 }),
@@ -83,7 +83,7 @@ function _init()
     Renderable({ borderColor = 12 })
   )
 
-  local cameraInnerEntity = world.createEntity(
+  local cameraInnerEntity = world.entity(
     {},
     RelativePosition({ x = 10, y = 10, parent = cameraEntity }),
     Size({ width = 20, height = 20 }),
@@ -104,10 +104,10 @@ end
 -- which matches the filter { Position, Player }, so this System could be
 -- replaced with a regular function.
 -- But, as our world grows, we may want more than one player which responds to
--- user input. All that's required is to call `world.createEntity` with at least
+-- user input. All that's required is to call `world.entity` with at least
 -- the `Player` & `Position` components, then this System will automatically
 -- detect it and run the function.
-local move = world.createSystem({ Position, Player }, function(entity, tDiff)
+local move = world.system({ Position, Player }, function(entity, tDiff)
   if (btn(0)) then entity[Position].x -= entity[Player].moveSpeedX * tDiff end
   if (btn(1)) then entity[Position].x += entity[Player].moveSpeedX * tDiff end
   if (btn(2)) then entity[Position].y -= entity[Player].moveSpeedY * tDiff end
@@ -115,7 +115,7 @@ local move = world.createSystem({ Position, Player }, function(entity, tDiff)
 end)
 
 -- Ensure entities stay within their container (usually the world map)
-local containEntities = world.createSystem({ Position, Size, Contained }, function(entity)
+local containEntities = world.system({ Position, Size, Contained }, function(entity)
   local container = entity[Contained]
   local pos = entity[Position]
   pos.x = mid(
@@ -133,7 +133,7 @@ end)
 -- Very naive rendering in this example. As complexity rises, it makes sense to
 -- create Components for each type of renderable, and the System which actually
 -- does the rendering.
-local drawRenderables = world.createSystem({ Position, Renderable, Size }, function(entity)
+local drawRenderables = world.system({ Position, Renderable, Size }, function(entity)
   rect(
     entity[Position].x,
     entity[Position].y,
@@ -145,7 +145,7 @@ end)
 
 -- For debug purposes, we're using this system only to render the inner box of
 -- the camera
-local drawRelativeRenderables = world.createSystem({ RelativePosition, Renderable, Size }, function(entity)
+local drawRelativeRenderables = world.system({ RelativePosition, Renderable, Size }, function(entity)
   local xOffset = entity[RelativePosition].parent[Position].x
   local yOffset = entity[RelativePosition].parent[Position].y
   rect(
@@ -159,7 +159,7 @@ end)
 
 -- The method to ensure one entity follows along with another entity.
 -- Depends on the followed entity having a Position & Size Component
-local follow = world.createSystem({ Position, Follower }, function(entity)
+local follow = world.system({ Position, Follower }, function(entity)
   local withinPos = entity[Follower].within[RelativePosition]
   local withinBox = entity[Follower].within[Size]
   local followingPos = entity[Follower].following[Position]

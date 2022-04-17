@@ -1,5 +1,21 @@
 # PECS
 
+## 2.0.0
+
+### Major Changes
+
+- [](): Made the API more friendly to use within PICO-8 by removing capital
+  letters and shortening method names:
+
+  - `createECSworld()` -> `.pecs()`
+  - `.createComponent()` -> `.component()`
+  - `.createEntity()` -> `.entity()`
+  - `.createSystem()` -> `.system()`
+  - `.createQuery()` -> `.query()`
+  - `.removeEntity()` -> `.remove()`
+
+- [](): Shaved some tokens.
+
 ## 1.1.1
 
 ### Patch Changes

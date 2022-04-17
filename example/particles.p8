@@ -11,7 +11,7 @@ __lua__
 --[[ ECS SETUP ]]--
 
 -- Setup the world where all Components, Entities, and Systems will live
-local world = createECSWorld()
+local world = pecs()
 
 --[[ END ECS SETUP ]]--
 -----------------------
@@ -22,20 +22,20 @@ local world = createECSWorld()
 -- Create instantiable Components with default values
 -- These values will all be used later in the Systems
 -- Individual values can be overriden when instiating a Component
-local Position = world.createComponent({ x= 0, y = 0 })
-local Velocity = world.createComponent({ x= 0, y = 0 })
-local Acceleration = world.createComponent({ x = 0, y = 60 })
-local Renderable = world.createComponent({ color = 7, size = 1 })
-local Ttl = world.createComponent({ ttlSeconds = 0 })
+local Position = world.component({ x= 0, y = 0 })
+local Velocity = world.component({ x= 0, y = 0 })
+local Acceleration = world.component({ x = 0, y = 60 })
+local Renderable = world.component({ color = 7, size = 1 })
+local Ttl = world.component({ ttlSeconds = 0 })
 -- One Component to store general emitter data
-local Emitter = world.createComponent({
+local Emitter = world.component({
   isEmitting = false,
   emitAt = 0
 })
 -- Other components used to determine the exact type of emitter
-local FountainEmitter = world.createComponent({ emitEverySeconds = 0.01 })
-local RainfallEmitter = world.createComponent({ emitEverySeconds = 0.01 })
-local ExplosionEmitter = world.createComponent({ emitEverySeconds = 0.01 })
+local FountainEmitter = world.component({ emitEverySeconds = 0.01 })
+local RainfallEmitter = world.component({ emitEverySeconds = 0.01 })
+local ExplosionEmitter = world.component({ emitEverySeconds = 0.01 })
 
 --[[ END ECS COMPONENTS ]]--
 ----------------------------
@@ -44,7 +44,7 @@ function _init()
   -- Setup our emitter.
   -- Systems which filter for these components will be automatically updated to
   -- include this new entity.
-  world.createEntity(
+  world.entity(
     {},
     Emitter(),
     -- Start with a Fountain, but it can be changed based on input
@@ -61,13 +61,13 @@ end
 -- which matches the filter { Emitter, Position }, so this System could be
 -- replaced with a regular function.
 -- But, as our world grows, we may want more than one emitter which responds to
--- user input. All that's required is to call `world.createEntity` with at least
+-- user input. All that's required is to call `world.entity` with at least
 -- the `Emitter` & `Position` components, then this System will automatically
 -- detect it and run the function.
 --
--- To try it out; duplicate the `world.createEntity` call in _init() above, but
+-- To try it out; duplicate the `world.entity` call in _init() above, but
 -- with a different type and x/y value.
-local handleEmitterInput = world.createSystem({ Emitter, Position }, function(emitter, tickTime)
+local handleEmitterInput = world.system({ Emitter, Position }, function(emitter, tickTime)
   -- Move the emitter around while keeping it on the screen
   if (btn(0)) then emitter[Position].x = (emitter[Position].x - 1) % 128 end
   if (btn(1)) then emitter[Position].x = (emitter[Position].x + 1) % 128 end
@@ -112,7 +112,7 @@ end)
 -- ie; this system shouldn't know or care about user input. There could be other
 -- systems that modify emitters (on/off, movement, etc) that have nothing to do
 -- with input. This system only cares about emitting.
-local emitFountain = world.createSystem({ Emitter, FountainEmitter, Position }, function(emitter, tickTime)
+local emitFountain = world.system({ Emitter, FountainEmitter, Position }, function(emitter, tickTime)
   if (not emitter[Emitter].isEmitting) then return end
 
   -- Make sure enough time has elapsed to emit a new particle
@@ -127,7 +127,7 @@ local emitFountain = world.createSystem({ Emitter, FountainEmitter, Position }, 
     local angle = 0.25 + rnd(0.125) - 0.0625
     local speed = 50 + rnd(30)
 
-    world.createEntity(
+    world.entity(
       {},
       Position({ x=emitter[Position].x, y=emitter[Position].y }),
       Velocity({ x = cos(angle) * speed, y = sin(angle) * speed }),
@@ -138,7 +138,7 @@ local emitFountain = world.createSystem({ Emitter, FountainEmitter, Position }, 
   end
 end)
 
-local emitRainfall = world.createSystem({ Emitter, RainfallEmitter, Position }, function(emitter, tickTime)
+local emitRainfall = world.system({ Emitter, RainfallEmitter, Position }, function(emitter, tickTime)
   if (not emitter[Emitter].isEmitting) then return end
 
   -- Make sure enough time has elapsed to emit a new particle
@@ -146,7 +146,7 @@ local emitRainfall = world.createSystem({ Emitter, RainfallEmitter, Position }, 
   while (tickTime >= emitter[Emitter].emitAt) do
     emitter[Emitter].emitAt += emitter[RainfallEmitter].emitEverySeconds
 
-    world.createEntity(
+    world.entity(
       {},
       Position({ x=emitter[Position].x + rnd(40) - 20, y=emitter[Position].y }),
       Velocity(),
@@ -157,7 +157,7 @@ local emitRainfall = world.createSystem({ Emitter, RainfallEmitter, Position }, 
   end
 end)
 
-local emitExplosion = world.createSystem({ Emitter, ExplosionEmitter, Position }, function(emitter, tickTime)
+local emitExplosion = world.system({ Emitter, ExplosionEmitter, Position }, function(emitter, tickTime)
   if (not emitter[Emitter].isEmitting) then return end
 
   -- Make sure enough time has elapsed to emit a new particle
@@ -168,7 +168,7 @@ local emitExplosion = world.createSystem({ Emitter, ExplosionEmitter, Position }
     local angle = rnd(1)
     local speed = 50 + rnd(30)
 
-    world.createEntity(
+    world.entity(
       {},
       Position({ x=emitter[Position].x, y=emitter[Position].y }),
       Velocity({ x = cos(angle) * speed, y = sin(angle) * speed }),
@@ -180,19 +180,19 @@ local emitExplosion = world.createSystem({ Emitter, ExplosionEmitter, Position }
 end)
 
 -- Particles don't live forever, so we give them a TTL
-local ttlUpdate = world.createSystem({ Ttl }, function(item, tDiff)
+local ttlUpdate = world.system({ Ttl }, function(item, tDiff)
   item[Ttl].ttlSeconds -= tDiff
 
   -- Once their remaining TTL is up
   if (item[Ttl].ttlSeconds <= 0) then
     -- Remove that entity from the world.
     -- All Systems will be automatically updated to exclude this item
-    world.removeEntity(item)
+    world.remove(item)
   end
 end)
 
 -- A mini physics system
-local moveItems = world.createSystem({ Position, Velocity, Acceleration }, function(item, tDiff)
+local moveItems = world.system({ Position, Velocity, Acceleration }, function(item, tDiff)
   item[Velocity].x += tDiff * item[Acceleration].x
   item[Velocity].y += tDiff * item[Acceleration].y
   item[Position].x += tDiff * item[Velocity].x
@@ -202,7 +202,7 @@ end)
 -- Very naive rendering in this example. As complexity rises, it makes sense to
 -- create Components for each type of renderable, and the System which actually
 -- does the rendering.
-local drawRenderables = world.createSystem({ Position, Renderable }, function(renderable)
+local drawRenderables = world.system({ Position, Renderable }, function(renderable)
   circfill(
     renderable[Position].x,
     renderable[Position].y,

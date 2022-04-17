@@ -11,23 +11,23 @@
 
 ## Usage
 
-Everything is part of a _World_. Create one with `createECSWorld()`:
+Everything is part of a _World_. Create one with `pecs()`:
 
 ```lua
-local world = createECSWorld()
+local world = pecs()
 ```
 
 _Components_ describe data containers that can be instantiated:
 
 ```lua
-local Position = world.createComponent()
-local Velocity = world.createComponent()
+local Position = world.component()
+local Velocity = world.component()
 ```
 
 An _Entity_ is a collection of instantiated _Components_.
 
 ```lua
-local player = world.createEntity()
+local player = world.entity()
 player += Position({ x=10, y=0 })
 player += Velocity({ x=0, y=1 })
 ```
@@ -48,7 +48,7 @@ The function receives any arguments passed when calling the method. Useful for
 passing in elapsed time, etc.
 
 ```lua
-local move = world.createSystem({ Position, Velocity }, function(entity, ticks)
+local move = world.system({ Position, Velocity }, function(entity, ticks)
   entity[Position].x += entity[Velocity].x * ticks
   entity[Position].y += entity[Velocity].y * ticks
 end)
@@ -62,17 +62,17 @@ move(ticks)
 ## Example
 
 ```lua
-local world = createECSWorld()
+local world = pecs()
 
-local Position = world.createComponent()
-local Velocity = world.createComponent()
+local Position = world.component()
+local Velocity = world.component()
 
-local player = world.createEntity({ name="Jess" })
+local player = world.entity({ name="Jess" })
 
 player += Position({ x=10, y=0 })
 player += Velocity({ x=0, y=1 })
 
-local move = world.createSystem({ Position, Velocity }, function(entity, ticks)
+local move = world.system({ Position, Velocity }, function(entity, ticks)
   entity[Position].x += entity[Velocity].x * ticks
   entity[Position].y += entity[Velocity].y * ticks
 end)
@@ -100,15 +100,15 @@ For more complete & practical examples, see the `example/` folder:
 
 ## API
 
-### `createECSWorld() => World`
+### `pecs() => World`
 
 Everything in PECS happens within a world.
 
 Can be called multiple times to create multiple worlds:
 
 ```lua
-local world1 = createECSWorld()
-local world2 = createECSWorld()
+local world1 = pecs()
+local world2 = pecs()
 ```
 
 Each world has its own _Components_ and _Entities_.
@@ -117,14 +117,14 @@ Each world has its own _Components_ and _Entities_.
 
 Must be called at the start of each `_update()` before anything else.
 
-#### `World#createEntity([attr[, Component, ...]]) => Entity`
+#### `World#entity([attr[, Component, ...]]) => Entity`
 
 ```lua
-local player = world.createEntity()
+local player = world.entity()
 
-local trap = world.createEntity({ type="spikes" })
+local trap = world.entity({ type="spikes" })
 
-local enemy = world.createEntity({}, Position({ x=10, y=10 }), Rotation({ angle=45 })
+local enemy = world.entity({}, Position({ x=10, y=10 }), Rotation({ angle=45 })
 ```
 
 ##### Adding a Component to an Entity
@@ -139,15 +139,15 @@ player += Position({ x=100, y=20 })
 player -= Position
 ```
 
-#### `World#createComponent([defaults]) => Component`
+#### `World#component([defaults]) => Component`
 
 ```lua
-local Position = world.createComponent()
+local Position = world.component()
 
-local Drawable = world.createComponent({ color: 8 })
+local Drawable = world.component({ color: 8 })
 ```
 
-#### `World#createSystem(filter, callback) => Function`
+#### `World#system(filter, callback) => Function`
 
 Where `filter` is a table of Components, and `callback` is a function that's
 passed the entity to operate on.
@@ -159,7 +159,7 @@ When executing the function, any parameters are passed through to the
 `callback`.
 
 ```lua
-local move = world.createSystem({ Position, Velocity }, function(entity, ticks)
+local move = world.system({ Position, Velocity }, function(entity, ticks)
   entity[Position].x += entity[Velocity].x * ticks
   entity[Position].y += entity[Velocity].y * ticks
 end)
@@ -174,11 +174,33 @@ Systems efficiently maintain a list of filtered entities that is only updated
 when needed. It is safe to create many systems that operate over large lists of
 Entities (within PICO-8's limits).
 
-#### `World#removeEntity(Entity)`
+#### `World#query(filter) => Table<Entity>`
+
+⚠️ _It is recommended to use `World#system` (which calls `query` internally)._
+
+Where `filter` is a table of Components, eg; `{ Position, Velocity }`.
+
+Return a reference to a filtered table of `Entity`s. The table is automatically
+updated when new entities match or old entities no longer match. Modifying this
+table can cause Systems to misbehave; treat it as read-only.
+
+```lua
+local entities = world.query({ Position })
+for _, ent in pairs(entities) do
+  printh(ent[Position].x .. "," ..ent[Position].y)
+end
+```
+
+Queries efficiently maintain a list of filtered entities that is only updated
+when needed. It is safe to create many queries that operate over large lists of
+Entities (within PICO-8's limits).
+
+#### `World#remove(Entity)`
 
 Remove the given entity from the world.
 
-Any Systems which previously matched this entity will no longer operate on it.
+Any Systems or Queries which previously matched this entity will no longer
+operate on it.
 
 #### `World#queue(Function)`
 
