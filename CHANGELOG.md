@@ -4,15 +4,18 @@
 
 ### Major Changes
 
-- [](): Made the API more friendly to use within PICO-8 by removing capital
-  letters and shortening method names:
+- [](): Renamed most API methods to be lowercase and fewer characters. This
+  improves the ergonomics when developing within the PICO-8 code editor:
 
-  - `createECSworld()` -> `.pecs()`
+  - `createECSworld()` -> `pecs()`
   - `.createComponent()` -> `.component()`
   - `.createEntity()` -> `.entity()`
   - `.createSystem()` -> `.system()`
   - `.createQuery()` -> `.query()`
   - `.removeEntity()` -> `.remove()`
+
+- [](): Removed the "lite" version (`pecs-lite.lua`); Systems are a core piece
+  of ECS, and should be embraced.
 
 - [](): Shaved some tokens.
 
