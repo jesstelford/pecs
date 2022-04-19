@@ -4,8 +4,7 @@
 
 ### Major Changes
 
-- [](): Renamed most API methods to be lowercase and fewer characters. This
-  improves the ergonomics when developing within the PICO-8 code editor:
+- [9c26ecf](https://github.com/jesstelford/pecs/commit/9c26ecf): Renames most methods of the PECS api to be single word lowercase. This greatly increases the usability when coding in the PICO-8 editor (inspired by @josiebb's changes in #1 - thanks!):
 
   - `createECSworld()` -> `pecs()`
   - `.createComponent()` -> `.component()`
@@ -14,10 +13,11 @@
   - `.createQuery()` -> `.query()`
   - `.removeEntity()` -> `.remove()`
 
-- [](): Removed the "lite" version (`pecs-lite.lua`); Systems are a core piece
-  of ECS, and should be embraced.
+- [9c26ecf](https://github.com/jesstelford/pecs/commit/9c26ecf): Remove `pecs-lite.lua`. PECS "lite" reduced the token count by removing queries & system susport. However, this effectively neuters the library, making it fairly pointless. Therefore, I've removed the "lite" version completely, which also makes maintenance easier for me.
 
-- [](): Shaved some tokens.
+### Minor Changes
+
+- [9c26ecf](https://github.com/jesstelford/pecs/commit/9c26ecf): Reduce token count by 9 to 567 (thanks @josiebb!)
 
 ## 1.1.1
 
