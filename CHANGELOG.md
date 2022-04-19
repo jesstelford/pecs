@@ -1,5 +1,24 @@
 # PECS
 
+## 2.0.0
+
+### Major Changes
+
+- [](): Renamed most API methods to be lowercase and fewer characters. This
+  improves the ergonomics when developing within the PICO-8 code editor:
+
+  - `createECSworld()` -> `pecs()`
+  - `.createComponent()` -> `.component()`
+  - `.createEntity()` -> `.entity()`
+  - `.createSystem()` -> `.system()`
+  - `.createQuery()` -> `.query()`
+  - `.removeEntity()` -> `.remove()`
+
+- [](): Removed the "lite" version (`pecs-lite.lua`); Systems are a core piece
+  of ECS, and should be embraced.
+
+- [](): Shaved some tokens.
+
 ## 1.1.1
 
 ### Patch Changes
