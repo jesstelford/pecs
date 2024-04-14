@@ -2,6 +2,8 @@ pico-8 cartridge // http://www.pico-8.com
 version 32
 __lua__
 #include ../pecs.lua
+--include"../pecs.lua" -- picotron
+
 -- A camera follow example showing how to use PECS (PICO-8 Entity Component
 -- System) by Jess Telford: https://github.com/jesstelford/pico-8-pecs
 -- This example is optimised for readability, not token or character count.
@@ -199,12 +201,15 @@ function _update60()
   lastTickTime = tickTime
 end
 
+-- picotron
+if (_G) _update = _update60
+
 function _draw()
   cls(1)
   drawRenderables()
   drawRelativeRenderables()
-  print("  move", 2, 2, 7)
-  print("⬅️➡️⬆️⬇️ ", 2, 10, 7)
+  print("\f7  move", 2, 2)
+  print("\f7"..chr(139,145,148,131), 2)
 end
 
 --[[ END PICO8 LOOPS ]]--

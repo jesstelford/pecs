@@ -2,7 +2,7 @@
   <br>
   <h1>PECS</h1>
   <p>
-    <b>A <a href="https://www.lexaloffle.com/pico-8.php">PICO-8</a> <a href="https://en.wikipedia.org/wiki/Entity_component_system">Entity Component System (ECS)</a> library in 567 tokens.</b><br />
+    <b><a href="https://en.wikipedia.org/wiki/Entity_component_system">Entity Component System (ECS)</a> for <a href="https://www.lexaloffle.com/pico-8.php">PICO-8</a> & <a href="https://www.lexaloffle.com/picotron.php">Picotron</a> in 567 tokens.</b><br />
   <sup>(Based on <a href="https://www.lexaloffle.com/bbs/?uid=45947">KatrinaKitten</a>'s excellent <a href="https://www.lexaloffle.com/bbs/?tid=39021">Tiny ECS Framework v1.1</a>)</sup>
   </p>
   <br>

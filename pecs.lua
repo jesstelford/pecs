@@ -8,8 +8,11 @@
 -- jesstelford: core maintainer
 -- josiebb: reduce tokens, pico8
 --   editor support
+-- Umngane Wami: Picotron tests
 
-local pecs do
+-- do/end creates new scope
+-- for helpers, etc in PICO-8
+do
   local _highest_id = 0
 
   function cuid()
@@ -71,7 +74,9 @@ local pecs do
       return result
     end
 
-  pecs = function()
+  -- Assigning to _ENV makes
+  -- it available globally
+  _ENV.pecs = function()
     local entities = {}
     local queries = {}
     local systems = {}
